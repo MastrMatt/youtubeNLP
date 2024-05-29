@@ -2,17 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Comment
-from .serializers import CommentSerializer
-
 # youtube api information
+from html import unescape
 from googleapiclient.discovery import build
 
-# NLP tools
-import nltk
-import numpy as np
-
-from langdetect import detect
+# NLP module
+from NLP.preprocessing import preprocess_comment
+from NLP import analysis
 
 # env tools
 import os
@@ -24,21 +20,34 @@ from datetime import datetime
 # Load environment variables
 load_dotenv()
 
-#download nltk data
-nltk.download('punkt')
-
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
 
 class CommentList(APIView):
+
+    # define some variables to fetch comments from youtube
+    comments_per_call = 3
+    total_calls = 2
+
     def get_comments_from_youtube(self, video_id):
+        """
+        Function to fetch comments from a youtube video using the youtube API.
+        Also, preprocesses the comments using the preprocess_comment function from the preprocessing module.
+
+        Args:
+            video_id (str): the youtube video ID
+
+        Returns:
+            comments_by_month (dict): dictionary containing comments by month
+        """
+
         youtube = build("youtube", "v3", developerKey=youtube_api_key)
 
         # Define the parameters for the API call
         params = {
             "part": "snippet",
             "videoId": video_id,  # replace with your video ID
-            "maxResults": 100,  # number of comments per request (max is 100)
+            "maxResults": self.comments_per_call,  # number of comments per request (max is 100)
         }
 
         # Make the initial API call
@@ -50,7 +59,10 @@ class CommentList(APIView):
         # Function to process response items
         def process_response(response):
             for item in response["items"]:
-                comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
+                # Decode the comment text using html.unescape
+                comment = unescape(
+                    item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
+                )
                 published_at = item["snippet"]["topLevelComment"]["snippet"].get(
                     "publishedAt"
                 )
@@ -59,7 +71,12 @@ class CommentList(APIView):
                     month = pub_date.strftime("%Y-%m")
                     if month not in comments_by_month:
                         comments_by_month[month] = []
-                    comments_by_month[month].append(comment)
+
+                    # Preprocess the comment
+                    comment = preprocess_comment(comment)
+
+                    if comment:
+                        comments_by_month[month].append(comment)
 
         # Process the initial response
         process_response(response)
@@ -68,7 +85,9 @@ class CommentList(APIView):
         next_page_token = response.get("nextPageToken")
 
         # Loop to fetch more comments if available
-        for _ in range(9):  # already fetched the first batch, so 9 more iterations
+        for _ in range(
+            self.total_calls - 1
+        ):  # already fetched the first batch, so 9 more iterations
             if next_page_token:
                 params["pageToken"] = next_page_token
                 response = youtube.commentThreads().list(**params).execute()
@@ -79,36 +98,16 @@ class CommentList(APIView):
 
         return comments_by_month
 
-    #currenly only works for english comments
-    def preprocess_comments(self, comments):
-
-        def verify_english(comment):
-            # check if comment is in english
-            try:
-                return detect(comment) == "en"
-            except:
-                return False
-            
-        def clean_comment(comment):
-            #remove non-english characters and emojis
-            comment = comment.encode('ascii', 'ignore').decode('ascii')
-            return comment
-        
-        
-        test_comment0 = "This is testing a tokenizer and preprocessor"
-        test_comment1 = "💪🗿 those are some emojis"
-        test_comment2 = "Эти произведения помогают мне бороться со своими демонами. Торфинн, Гатс, Мусаши и авторы, что придумали этих персонажей- они до сих пор сохраняют моë пламя в груди...."
-
-        comments = [test_comment0, test_comment1, test_comment2]
-        
-        for comment in comments:
-            #ensure comment is in english
-            comment = comment.encode('ascii', 'ignore').decode('ascii')
-
-            
-
-
     def get(self, request, video_id):
         comments = self.get_comments_from_youtube(video_id)
-        preprocessed_comments = self.preprocess_comments(comments)
+
+        vader_results = analysis.comments_sentiment_analysis(comments, method="vader")
+        ml_results = analysis.comments_sentiment_analysis(comments, method="ml")
+
+        print("-----------------Vader-----------------")
+        print(vader_results)
+
+        print("-----------------ML-----------------")
+        print(ml_results)
+
         return Response("Sucess", status=status.HTTP_200_OK)
