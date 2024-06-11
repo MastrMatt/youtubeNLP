@@ -1,113 +1,200 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-# youtube api information
+import json
+from django.shortcuts import render
+from django.http import HttpResponse
 from html import unescape
 from googleapiclient.discovery import build
+from datetime import datetime
 
-# NLP module
-from NLP.preprocessing import preprocess_comment
-from NLP import analysis
+from .forms import CommentForm
 
-# env tools
 import os
 from dotenv import load_dotenv
 
-# time tool
-from datetime import datetime
+# NLP stuff
+from NLP.preprocessing import preprocess_comment
+from NLP import analysis
 
 # Load environment variables
 load_dotenv()
-
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
 
-class CommentList(APIView):
+def get_comments_from_youtube(video_id, num_comments=1000):
+    """
+    Function to fetch comments from a youtube video using the youtube API.
+    Also, preprocesses the comments using the preprocess_comment function from the preprocessing module.
 
-    # define some variables to fetch comments from youtube
-    comments_per_call = 3
-    total_calls = 2
+    Args:
+        video_id (str): the youtube video ID
 
-    def get_comments_from_youtube(self, video_id):
-        """
-        Function to fetch comments from a youtube video using the youtube API.
-        Also, preprocesses the comments using the preprocess_comment function from the preprocessing module.
+    Returns:
+        comments_by_month (dict): dictionary containing comments by month
+    """
 
-        Args:
-            video_id (str): the youtube video ID
+    youtube = build("youtube", "v3", developerKey=youtube_api_key)
 
-        Returns:
-            comments_by_month (dict): dictionary containing comments by month
-        """
+    comments_per_call = 50
+    num_calls = num_comments // comments_per_call
 
-        youtube = build("youtube", "v3", developerKey=youtube_api_key)
+    # Define the parameters for the API call
+    params = {
+        "part": "snippet",
+        "videoId": video_id,
+        "maxResults": comments_per_call,
+    }
 
-        # Define the parameters for the API call
-        params = {
-            "part": "snippet",
-            "videoId": video_id,  # replace with your video ID
-            "maxResults": self.comments_per_call,  # number of comments per request (max is 100)
-        }
+    response = youtube.commentThreads().list(**params).execute()
+    comments_by_month = {}
 
-        # Make the initial API call
-        response = youtube.commentThreads().list(**params).execute()
+    def process_response(response):
+        for item in response["items"]:
+            comment = unescape(
+                item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
+            )
+            published_at = item["snippet"]["topLevelComment"]["snippet"].get(
+                "publishedAt"
+            )
+            if published_at:
+                pub_date = datetime.fromisoformat(published_at.split("T")[0])
+                month = pub_date.strftime("%Y-%m")
+                if month not in comments_by_month:
+                    comments_by_month[month] = []
 
-        # Extract comments by month
-        comments_by_month = {}
+                comment = preprocess_comment(comment)
+                if comment:
+                    comments_by_month[month].append(comment)
 
-        # Function to process response items
-        def process_response(response):
-            for item in response["items"]:
-                # Decode the comment text using html.unescape
-                comment = unescape(
-                    item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
-                )
-                published_at = item["snippet"]["topLevelComment"]["snippet"].get(
-                    "publishedAt"
-                )
-                if published_at:
-                    pub_date = datetime.fromisoformat(published_at.split("T")[0])
-                    month = pub_date.strftime("%Y-%m")
-                    if month not in comments_by_month:
-                        comments_by_month[month] = []
+    process_response(response)
+    next_page_token = response.get("nextPageToken")
 
-                    # Preprocess the comment
-                    comment = preprocess_comment(comment)
+    for _ in range(num_calls - 1):
+        if next_page_token:
+            params["pageToken"] = next_page_token
+            response = youtube.commentThreads().list(**params).execute()
+            process_response(response)
+            next_page_token = response.get("nextPageToken")
+        else:
+            break
 
-                    if comment:
-                        comments_by_month[month].append(comment)
+    return comments_by_month
 
-        # Process the initial response
-        process_response(response)
 
-        # Check for next page token
-        next_page_token = response.get("nextPageToken")
+def index(request):
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            analysis_type = form.cleaned_data["analysis_type"]
+            video_url = form.cleaned_data["video_url"]
 
-        # Loop to fetch more comments if available
-        for _ in range(
-            self.total_calls - 1
-        ):  # already fetched the first batch, so 9 more iterations
-            if next_page_token:
-                params["pageToken"] = next_page_token
-                response = youtube.commentThreads().list(**params).execute()
-                process_response(response)
-                next_page_token = response.get("nextPageToken")
-            else:
-                break
+            # get the video url
+            video_id = video_url.split("v=")[1].split("&")[0]
 
-        return comments_by_month
+            # redirect to the comments analysis view
+            return comments_analysis_view(request, video_id)
+        else:
+            return HttpResponse("Invalid form")
+    else:
+        form = CommentForm()
+        return render(request, "base.html", {"form": form})
 
-    def get(self, request, video_id):
-        comments = self.get_comments_from_youtube(video_id)
 
-        vader_results = analysis.comments_sentiment_analysis(comments, method="vader")
-        ml_results = analysis.comments_sentiment_analysis(comments, method="ml")
+def comments_analysis_view(request, video_id, analysis_type="vader"):
 
-        print("-----------------Vader-----------------")
-        print(vader_results)
+    comments = get_comments_from_youtube(video_id, 50)
 
-        print("-----------------ML-----------------")
-        print(ml_results)
+    # Perform sentiment analysis on the comments
+    if analysis_type == "vader":
+        results = analysis.comments_sentiment_analysis(comments, method="vader")
+    else:
+        results = analysis.comments_sentiment_analysis(comments, method="ml")
 
-        return Response("Sucess", status=status.HTTP_200_OK)
+    # Prepare data for the chart
+    labels = list(results.keys())
+
+    average_data = [results[label]["avg_sentiment"] for label in labels]
+    max_data = [results[label]["max_sentiment"] for label in labels]
+    min_data = [results[label]["min_sentiment"] for label in labels]
+
+    max_comments = [results[label]["max_sentiment_comment"] for label in labels]
+    min_comments = [results[label]["min_sentiment_comment"] for label in labels]
+
+    # append the label string to the comments
+    for i in range(len(max_comments)):
+        max_comments[i] = labels[i] + ": " + max_comments[i]
+        min_comments[i] = labels[i] + ": " + min_comments[i]
+
+    # compute the average sentiment for the entire video
+    total_sentiment = 0
+
+    for key in labels:
+        total_sentiment += results[key]["avg_sentiment"]
+
+    average_sentiment = total_sentiment / len(labels)
+
+    chart_data = {
+        "labels": labels,
+        "datasets": [
+            {
+                "label": "Average Sentiment",
+                "data": average_data,
+            },
+            {
+                "label": "Max Sentiment",
+                "data": max_data,
+            },
+            {
+                "label": "Min Sentiment",
+                "data": min_data,
+            },
+        ],
+        "options": {
+            "tension": 0.1,
+            "borderWidth": 3,
+            "borderRadius": 6,
+            "responsive": True,
+            "plugins": {
+                "title": {
+                    "display": True,
+                    "text": "Sentiment Vs. Time",
+                    "font": {
+                        "size": 25,
+                    },
+                }
+            },
+            "scales": {
+                "y": {
+                    "beginAtZero": True,
+                    "title": {
+                        "display": True,
+                        "text": "Sentiment Score",
+                        "font": {
+                            "size": 15,
+                        },
+                    },
+                },
+                "x": {
+                    "title": {
+                        "display": True,
+                        "text": "Month/Year Pair",
+                        "font": {
+                            "size": 15,
+                        },
+                    }
+                },
+            },
+        },
+    }
+
+    print("Average Sentiment: ", average_sentiment)
+
+    context = {
+        "video_id": json.dumps(video_id),
+        "chart_data": json.dumps(chart_data),
+        "labels": labels,
+        "average_sentiment": average_sentiment,
+        "max_comments": max_comments,
+        "min_comments": min_comments,
+    }
+
+    # need to draw the 3 graphs in this view
+    return render(request, "displayComments.html", context)

@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="{%  static 'comments/img/favicon.png' %}">
+    <link rel="stylesheet" href = "{% static "comments/css/base.css" %}"> <!-- Link to the CSS file -->
+    {% block extra_css %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>{% block title %} Comments NLP {% endblock %}</title>
+</head>
+
+<body>
+    {%block header%}
+        <header class="header-container">
+            <h1 id = "header-title-text">Youtube Comments Analysis</h1>
+        </header>
+        <div class="header-spacer"></div>
+    {%endblock%}
+
+    <main>
+        {% block content %}
+        <div class = "main-container">
+            <span class = "description"> Enter information about the application here asdasd asd asd asd asd asdasd aasdasasd asdasda ssda sd asdasdas sad sd a asdasd asdasdsada sdasd asd a adssdafd d f</span>
+
+            <form action="{% url 'index' %}" method="post" class="comment-form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class= "index-submit-button" type="submit">Submit</button>
+            </form>
+
+            <span class = "description"> Enter information about the application here asdasd asd asd asd asd asdasd aasdasasd asdasda ssda sd asdasdas sad sd a asdasd asdasdsada sdasd asd a adssdafd d f</span>
+        </div>
+        {% endblock %}
+    </main>
+
+</body>
+
+</html>

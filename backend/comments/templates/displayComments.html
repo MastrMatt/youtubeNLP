@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %} {% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href = "{% static "comments/css/displayComments.css" %}"> <!-- Link to the CSS file -->
+{% endblock %}
+
+{% block title %} Comments NLP {% endblock %}
+
+{% block content %}
+
+        <div class="refresh-icon" onClick="refreshApp()">
+            <i class="fas fa-sync-alt"></i>
+        </div>
+        
+        <div class="graph1-container">
+            <canvas id="line-chart"></canvas>
+        </div>
+
+        <div class="graph2-container">
+            <canvas id="bar-chart"></canvas>
+        </div> 
+
+        <div class = "summary-container">
+            <h2> Overall Sentiment Score: </h2>
+
+            <p class="sentiment-score">
+                The average sentiment of all comments is: {{ average_sentiment }} === 
+                {% if 0 <= average_sentiment %}
+                    <span class="emoji">😊</span>
+                {% else %}
+                    <span class="emoji">😞</span>
+                {% endif %}
+            </p>
+
+        </div>
+
+        <div class="comment-container">
+            <h2>Max Sentiment Comments: </h2>
+            <ul>
+                {% for comment in max_comments %}
+                    <li>  {{ comment }}</li>
+                {% endfor %}
+            </ul>
+
+            <h2>Min Sentiment Comments: </h2>
+            <ul>
+                {% for comment in min_comments %}
+                    <li>  {{ comment }}</li>
+                {% endfor %}
+            </ul>
+
+
+
+        <script>
+
+            // get chart data from the backend
+            const chart_data = JSON.parse("{{ chart_data | escapejs }}")
+        
+            const lineCtx = document.getElementById('line-chart')
+            const  barCtx = document.getElementById('bar-chart')
+        
+        
+            const lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: chart_data.labels,
+                    datasets: chart_data.datasets
+                },
+                options: chart_data.options,
+                plugins: chart_data.plugins    
+            })
+
+            const barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: chart_data.labels,
+                    datasets: chart_data.datasets
+                },
+                options: chart_data.options,
+                plugins: chart_data.plugins    
+            })
+        
+            function refreshApp(){
+                // go back to the index page
+                window.location.href = "{% url 'index' %}"
+            }
+        
+        </script>
+        
+        
+{% endblock %}
+
+

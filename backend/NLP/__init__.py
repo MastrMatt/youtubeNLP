@@ -1,4 +1,5 @@
 # make sure to download nltk data when importing the module
+import os
 import nltk
 
 # make sure nltk loads the data from the current directory

@@ -5,5 +5,6 @@ from . import views
 
 
 urlpatterns = [
-    path("<str:video_id>", views.CommentList.as_view()),  
+    path("", views.index, name="index"),
+    path("<str:video_id>", views.comments_analysis_view, name="comments_analysis_view"),
 ]

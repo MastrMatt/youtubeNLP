@@ -52,8 +52,21 @@ def huggingface_sentiment_analysis(comments):
     sentiment_scores = []
 
     for comment in comments:
-        sentiment = sentiment_pipeline(comment)
-        sentiment_scores.append(sentiment)
+        # Tokenize the comment and check the length of the tokenized input
+        tokenized_comment = sentiment_pipeline.tokenizer.tokenize(comment)
+
+        if len(tokenized_comment) < 510:
+            # Truncate the tokenized input to the first 512 tokens
+            tokenized_comment = tokenized_comment[:510]
+
+            # Convert the truncated tokenized input back to text
+            truncated_comment = sentiment_pipeline.tokenizer.convert_tokens_to_string(
+                tokenized_comment
+            )
+
+            # Perform sentiment analysis on the truncated comment
+            sentiment = sentiment_pipeline(truncated_comment)
+            sentiment_scores.append(sentiment)
 
     # change sentiment score to be a value between -1 and 1, remove label
     sentiment_scores = [
@@ -77,13 +90,27 @@ def comments_sentiment_analysis(comments, method="vader"):
         method (str): method to use for sentiment analysis, either "vader" or "ml"
 
     Returns:
-        sentiment_scores (list): list of sentiment scores for each comment from -1 to 1
+        results (dict): dictionary containing sentiment analysis results for each year-month pair:
+        {
+            "year-month": {
+                "avg_sentiment": float,
+                "max_sentiment_comment": str,
+                "max_sentiment": float,
+                "min_sentiment_comment": str,
+                "min_sentiment": float,
+            },
+            ...
+        }
     """
 
     results = {}
 
     if method == "vader":
         for key, value in comments.items():
+            # check if no comments for the year-month pair
+            if not value:
+                continue
+
             # value contains an array of comments for the year-month pair
             sentiment_scores = vader_sentiment_analysis(value)
 
@@ -101,13 +128,17 @@ def comments_sentiment_analysis(comments, method="vader"):
             results[key] = {
                 "avg_sentiment": avg_sentiment,
                 "max_sentiment_comment": max_sentiment_comment,
-                "max_sentiment_score": max_sentiment_score,
+                "max_sentiment": max_sentiment_score,
                 "min_sentiment_comment": min_sentiment_comment,
-                "min_sentiment_score": min_sentiment_score,
+                "min_sentiment": min_sentiment_score,
             }
 
     elif method == "ml":
         for key, value in comments.items():
+            # check if no comments for the year-month pair
+            if not value:
+                continue
+
             sentiment_scores = huggingface_sentiment_analysis(value)
 
             # average sentiment score for the year-month pair
@@ -124,9 +155,12 @@ def comments_sentiment_analysis(comments, method="vader"):
             results[key] = {
                 "avg_sentiment": avg_sentiment,
                 "max_sentiment_comment": max_sentiment_comment,
-                "max_sentiment_score": max_sentiment_score,
+                "max_sentiment": max_sentiment_score,
                 "min_sentiment_comment": min_sentiment_comment,
-                "min_sentiment_score": min_sentiment_score,
+                "min_sentiment": min_sentiment_score,
             }
+
+    # order the results by year-month pairs
+    results = dict(sorted(results.items(), key=lambda x: x[0]))
 
     return results

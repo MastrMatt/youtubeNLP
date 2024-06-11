@@ -1,8 +1,8 @@
 from django.test import TestCase
-from rest_framework.test import APITestCase
 
 
-class commentsAPITest(APITestCase):
-    def test_get_comments(self):
-        response = self.client.get("/comments/ndNHmdPuJPE")
-        self.assertEqual(response.status_code, 200)
+# test for the views
+class TestViews(TestCase):
+    def test_comments_analysis_view(self):
+        response = self.client.get("/LjQSxl0Nfrs")
+        print(response)

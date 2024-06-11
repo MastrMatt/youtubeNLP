@@ -15,6 +15,9 @@ def clean_comment(comment):
     # remove non-english characters and emojis
     comment = comment.encode("ascii", "ignore").decode("ascii")
 
+    # remove html tags, ? is for a non-greedy match
+    comment = re.sub(r"<.*?>", "", comment)
+
     # remove non punctuation special characters
     comment = re.sub(r"[^\w\s\.,!?;:]", "", comment)
 
