@@ -24,7 +24,7 @@
     <main>
         {% block content %}
         <div class = "main-container">
-            <span class = "description"> Enter information about the application here asdasd asd asd asd asd asdasd aasdasasd asdasda ssda sd asdasdas sad sd a asdasd asdasdsada sdasd asd a adssdafd d f</span>
+           
 
             <form action="{% url 'index' %}" method="post" class="comment-form">
                 {% csrf_token %}
@@ -32,8 +32,14 @@
                 <button class= "index-submit-button" type="submit">Submit</button>
             </form>
 
-            <span class = "description"> Enter information about the application here asdasd asd asd asd asd asdasd aasdasasd asdasda ssda sd asdasdas sad sd a asdasd asdasdsada sdasd asd a adssdafd d f</span>
+            
         </div>
+
+        <div class = "description-box">
+            <span class = "description"> This is a simple application that performs sentiment analysis on the comments of a youtube video. It can perform the analysis using AI which relies on a transformer model from hugging face, or by using a non AI "bag of words" approach using VADER analysis. The results of the analysis will include some interactive graphs which can be manipulated. For optimal display of the application, select a video with a sufficient number of comments. Enjoy! </span> 
+   
+        </div>
+
         {% endblock %}
     </main>
 

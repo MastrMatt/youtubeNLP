@@ -19,7 +19,7 @@ load_dotenv()
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
 
-def get_comments_from_youtube(video_id, num_comments=1000):
+def get_comments_from_youtube(video_id, num_comments=50):
     """
     Function to fetch comments from a youtube video using the youtube API.
     Also, preprocesses the comments using the preprocess_comment function from the preprocessing module.
@@ -84,13 +84,14 @@ def index(request):
         form = CommentForm(request.POST)
         if form.is_valid():
             analysis_type = form.cleaned_data["analysis_type"]
+            num_comments = form.cleaned_data["num_comments"]
             video_url = form.cleaned_data["video_url"]
 
             # get the video url
             video_id = video_url.split("v=")[1].split("&")[0]
 
             # redirect to the comments analysis view
-            return comments_analysis_view(request, video_id)
+            return comments_analysis_view(request, video_id, analysis_type=analysis_type, num_comments=num_comments)
         else:
             return HttpResponse("Invalid form")
     else:
@@ -98,9 +99,9 @@ def index(request):
         return render(request, "base.html", {"form": form})
 
 
-def comments_analysis_view(request, video_id, analysis_type="vader"):
+def comments_analysis_view(request, video_id, analysis_type="vader", num_comments=50):
 
-    comments = get_comments_from_youtube(video_id, 50)
+    comments = get_comments_from_youtube(video_id, num_comments=num_comments)
 
     # Perform sentiment analysis on the comments
     if analysis_type == "vader":

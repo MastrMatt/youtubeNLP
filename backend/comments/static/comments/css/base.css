@@ -13,6 +13,7 @@ body, html {
 .description{
     flex: 1 1 30%;
     padding: 2rem 1rem;
+    font-size: 1.1rem;
 }
 
 .header-container {
@@ -27,6 +28,7 @@ body, html {
 
 #header-title-text {
     color:#353839;
+    text-align: center;
     padding: 0.2rem;
     border-radius: 2rem;
 }   
@@ -50,3 +52,12 @@ body, html {
     width: 20%;
     border-radius: 2rem;
 }
+
+.description-box {
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: 1px solid black; /* Added black border */
+}   
