@@ -132,6 +132,7 @@ def comments_analysis_view(request, video_id, analysis_type="vader", num_comment
 
     average_sentiment = total_sentiment / len(labels)
 
+    #prepare data for chart.js
     chart_data = {
         "labels": labels,
         "datasets": [
