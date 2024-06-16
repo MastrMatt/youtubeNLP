@@ -50,8 +50,9 @@ Upon accessing the application, users will see a form where they can enter a You
 
 ## Future Considerations
 
--Incorporate the likes of each comment into the overall sentiment analysis
--Provide a graphical interface to view the maximum and minimum comments
+1. Incorporate the likes of each comment into the overall sentiment analysis
+
+2. Provide a graphical interface to view the maximum and minimum comments
 
 ## Author
 Matthew Neba / [@MastrMatt](https://github.com/MastrMatt)
