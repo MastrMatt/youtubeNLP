@@ -61,3 +61,15 @@ body, html {
     background-color: #fff;
     border: 1px solid black; /* Added black border */
 }   
+
+.analysis-type {
+    color: #353839;
+}
+
+.video-url {
+    height: 1.5rem;
+}
+
+.num-comments {
+    height: 1.5rem; 
+}

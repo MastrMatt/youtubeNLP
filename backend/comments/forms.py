@@ -9,18 +9,19 @@ class CommentForm(forms.Form):
             ("ml", "AI"),
         ],
         required=True,
+        widget=forms.Select(attrs={"class": "analysis-type"}),
     )
 
     video_url = forms.URLField(
         label="Youtube Video URL",
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Enter Here"}),
-    )
+        widget=forms.TextInput(attrs={"class": "video-url", "placeholder": "Enter Here"}),
+    )  
 
     num_comments = forms.IntegerField(
         label="Number of Comments",
         required=True,
-        widget=forms.NumberInput(attrs={"placeholder": "Enter Here"}),
+        widget=forms.NumberInput(attrs={"class": "num-comments", "placeholder": "Enter Here"}),
     )
 
     def clean_video_url(self):

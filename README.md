@@ -48,7 +48,7 @@ To run this application locally, follow these steps:
 Upon accessing the application, users will see a form where they can enter a YouTube video URL. After submitting the form, the application will display the sentiment analysis results, including charts showing the distribution of sentiments across the selected video's comments.
 
 ## Author
-Matthew Neba/ [@MastrMatt](https://github.com/MastrMatt)
+Matthew Neba / [@MastrMatt](https://github.com/MastrMatt)
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
