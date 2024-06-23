@@ -7,7 +7,7 @@ This project is a Django-based web application designed to perform sentiment ana
 
 - **YouTube Video Selection**: Users can select a YouTube video URL to analze its comments.
 - **Sentiment Analysis Methods**: Offers two methods for sentiment analysis: VADER (a lexicon-based sentiment analysis tool) and a machine learning approach using Hugging Face's Transformers library.
-- **Visualization**: Generates charts displaying the average, maximum, and minimum sentiment scores for comments grouped by month/year pairs.
+- **Visualization**: Generates charts displaying the percentages of positive,negative and neutral comments for each month/year pair that returned by the youtube api
 - **Environment Variables**: Utilizes environment variables for configuration, including the YouTube API key and other settings.
 
 ## Setup
@@ -46,13 +46,15 @@ To run this application locally, follow these steps:
 
 ## Usage
 
-Upon accessing the application, users will see a form where they can enter a YouTube video URL. After submitting the form, the application will display the sentiment analysis results, including charts showing the distribution of sentiments across the selected video's comments.
+Upon accessing the application, users will see a form where they can enter a YouTube video URL. After submitting the form, the application will display the sentiment analysis results, including charts showing the distribution of sentiments across the selected video's comments. NOTE: the amount of comments fetched for each year/month pair is not constant, there may be some months with more comments retrieved than others.
 
 ## Future Considerations
 
 1. Incorporate the likes of each comment into the overall sentiment analysis
 
 2. Provide a graphical interface to view the maximum and minimum comments
+
+3. Implement batch processing for the Hugging face analysis to attempt to speed up
 
 ## Author
 Matthew Neba / [@MastrMatt](https://github.com/MastrMatt)
