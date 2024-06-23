@@ -28,11 +28,35 @@ def vader_sentiment_analysis(comments):
         # append the compound score to the sentiment_scores list
         sentiment_scores.append(sentiment["compound"])
 
-    return sentiment_scores
+    positive_num = 0
+    negative_num = 0
+    neutral_num = 0
+
+    for sentiment in sentiment_scores:
+        if sentiment > 0:
+            positive_num += 1
+        elif sentiment < 0:
+            negative_num += 1
+        else:
+            neutral_num += 1
+
+    positive_percentage = (positive_num / len(sentiment_scores)) * 100
+    negative_percentage = (negative_num / len(sentiment_scores)) * 100
+    neutral_percentage = (neutral_num / len(sentiment_scores)) * 100
+
+    sentiment_percentages = {
+        "positive": positive_percentage,
+        "negative": negative_percentage,
+        "neutral": neutral_percentage,
+    }
+
+    return (sentiment_scores, sentiment_percentages)
 
 
 # ML approach, transformer model
 def huggingface_sentiment_analysis(comments):
+
+    # TODO speed up the process by batching the comments and by taking a look at the tokenizer, look at device also, can also handle truncation
     """
     Function to analyze sentiment of comments using HuggingFace Sentiment Analysis.
     Uses a transformer model to determine sentiment of comments.
@@ -68,17 +92,38 @@ def huggingface_sentiment_analysis(comments):
             sentiment = sentiment_pipeline(truncated_comment)
             sentiment_scores.append(sentiment)
 
-    # change sentiment score to be a value between -1 and 1, remove label
+    positive_num = 0
+    negative_num = 0
+    neutral_num = 0
+
+    for sentiment in sentiment_scores:
+        if sentiment[0]["label"] == "POSITIVE":
+            positive_num += 1
+        elif sentiment[0]["label"] == "NEGATIVE":
+            negative_num += 1
+        else:
+            neutral_num += 1
+
     sentiment_scores = [
         (
             sentiment[0]["score"]
             if sentiment[0]["label"] == "POSITIVE"
-            else -sentiment[0]["score"]
+            else -sentiment[0]["score"] if sentiment[0]["label"] == "NEGATIVE" else 0
         )
         for sentiment in sentiment_scores
     ]
 
-    return sentiment_scores
+    positive_percentage = (positive_num / len(sentiment_scores)) * 100
+    negative_percentage = (negative_num / len(sentiment_scores)) * 100
+    neutral_percentage = (neutral_num / len(sentiment_scores)) * 100
+
+    sentiment_percentages = {
+        "positive": positive_percentage,
+        "negative": negative_percentage,
+        "neutral": neutral_percentage,
+    }
+
+    return (sentiment_scores, sentiment_percentages)
 
 
 def comments_sentiment_analysis(comments, method="vader"):
@@ -112,10 +157,7 @@ def comments_sentiment_analysis(comments, method="vader"):
                 continue
 
             # value contains an array of comments for the year-month pair
-            sentiment_scores = vader_sentiment_analysis(value)
-
-            # average sentiment score for the year-month pair
-            avg_sentiment = sum(sentiment_scores) / len(sentiment_scores)
+            sentiment_scores, sentiment_percentages = vader_sentiment_analysis(value)
 
             # find the comment text with the highest sentiment
             max_sentiment_score = max(sentiment_scores)
@@ -126,7 +168,7 @@ def comments_sentiment_analysis(comments, method="vader"):
             min_sentiment_comment = value[sentiment_scores.index(min_sentiment_score)]
 
             results[key] = {
-                "avg_sentiment": avg_sentiment,
+                "sentiment_percentages": sentiment_percentages,
                 "max_sentiment_comment": max_sentiment_comment,
                 "max_sentiment": max_sentiment_score,
                 "min_sentiment_comment": min_sentiment_comment,
@@ -139,10 +181,9 @@ def comments_sentiment_analysis(comments, method="vader"):
             if not value:
                 continue
 
-            sentiment_scores = huggingface_sentiment_analysis(value)
-
-            # average sentiment score for the year-month pair
-            avg_sentiment = sum(sentiment_scores) / len(sentiment_scores)
+            sentiment_scores, sentiment_percentages = huggingface_sentiment_analysis(
+                value
+            )
 
             # find the comment text with the highest sentiment
             max_sentiment_score = max(sentiment_scores)
@@ -153,7 +194,7 @@ def comments_sentiment_analysis(comments, method="vader"):
             min_sentiment_comment = value[sentiment_scores.index(min_sentiment_score)]
 
             results[key] = {
-                "avg_sentiment": avg_sentiment,
+                "sentiment_percentages": sentiment_percentages,
                 "max_sentiment_comment": max_sentiment_comment,
                 "max_sentiment": max_sentiment_score,
                 "min_sentiment_comment": min_sentiment_comment,

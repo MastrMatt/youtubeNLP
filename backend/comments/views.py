@@ -91,7 +91,12 @@ def index(request):
             video_id = video_url.split("v=")[1].split("&")[0]
 
             # redirect to the comments analysis view
-            return comments_analysis_view(request, video_id, analysis_type=analysis_type, num_comments=num_comments)
+            return comments_analysis_view(
+                request,
+                video_id,
+                analysis_type=analysis_type,
+                num_comments=num_comments,
+            )
         else:
             return HttpResponse("Invalid form")
     else:
@@ -112,41 +117,43 @@ def comments_analysis_view(request, video_id, analysis_type="vader", num_comment
     # Prepare data for the chart
     labels = list(results.keys())
 
-    average_data = [results[label]["avg_sentiment"] for label in labels]
-    max_data = [results[label]["max_sentiment"] for label in labels]
-    min_data = [results[label]["min_sentiment"] for label in labels]
+    positive_data = []
+    negative_data = []
+    neutral_data = []
+    max_data = []
+    min_data = []
+    max_comments = []
+    min_comments = []
 
-    max_comments = [results[label]["max_sentiment_comment"] for label in labels]
-    min_comments = [results[label]["min_sentiment_comment"] for label in labels]
+    for label in labels:
+        positive_data.append(results[label]["sentiment_percentages"]["positive"])
+        negative_data.append(results[label]["sentiment_percentages"]["negative"])
+        neutral_data.append(results[label]["sentiment_percentages"]["neutral"])
+        max_data.append(results[label]["max_sentiment"])
+        min_data.append(results[label]["min_sentiment"])
+        max_comments.append(results[label]["max_sentiment_comment"])
+        min_comments.append(results[label]["min_sentiment_comment"])
 
     # append the label string to the comments
     for i in range(len(max_comments)):
         max_comments[i] = labels[i] + ": " + max_comments[i]
         min_comments[i] = labels[i] + ": " + min_comments[i]
 
-    # compute the average sentiment for the entire video
-    total_sentiment = 0
-
-    for key in labels:
-        total_sentiment += results[key]["avg_sentiment"]
-
-    average_sentiment = total_sentiment / len(labels)
-
-    #prepare data for chart.js
+    # prepare data for chart.js
     chart_data = {
         "labels": labels,
         "datasets": [
             {
-                "label": "Average Sentiment",
-                "data": average_data,
+                "label": "Positive Sentiment %",
+                "data": positive_data,
             },
             {
-                "label": "Max Sentiment",
-                "data": max_data,
+                "label": "Negative Sentiment %",
+                "data": negative_data,
             },
             {
-                "label": "Min Sentiment",
-                "data": min_data,
+                "label": "Neutral Sentiment %",
+                "data": neutral_data,
             },
         ],
         "options": {
@@ -157,7 +164,7 @@ def comments_analysis_view(request, video_id, analysis_type="vader", num_comment
             "plugins": {
                 "title": {
                     "display": True,
-                    "text": "Sentiment Vs. Time",
+                    "text": "Sentiment % Vs. Time",
                     "font": {
                         "size": 25,
                     },
@@ -168,7 +175,7 @@ def comments_analysis_view(request, video_id, analysis_type="vader", num_comment
                     "beginAtZero": True,
                     "title": {
                         "display": True,
-                        "text": "Sentiment Score",
+                        "text": "Sentiment %",
                         "font": {
                             "size": 15,
                         },
@@ -187,13 +194,11 @@ def comments_analysis_view(request, video_id, analysis_type="vader", num_comment
         },
     }
 
-    print("Average Sentiment: ", average_sentiment)
-
     context = {
         "video_id": json.dumps(video_id),
         "chart_data": json.dumps(chart_data),
         "labels": labels,
-        "average_sentiment": average_sentiment,
+        "majority_sentiment": 0,
         "max_comments": max_comments,
         "min_comments": min_comments,
     }
