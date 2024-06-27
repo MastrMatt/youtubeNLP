@@ -1,5 +1,0 @@
-vader_lexicon
-punkt
-averaged_perceptron_tagger
-maxent_ne_chunker
-words
