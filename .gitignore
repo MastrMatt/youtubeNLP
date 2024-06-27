@@ -2,7 +2,7 @@
 .vscode/
 
 # Django static files
-staticfiles/
+/staticfiles/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
