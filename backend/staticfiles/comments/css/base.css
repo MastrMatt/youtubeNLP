@@ -1,0 +1,75 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.main-container {
+    display: flex;
+}
+
+.description{
+    flex: 1 1 30%;
+    padding: 2rem 1rem;
+    font-size: 1.1rem;
+}
+
+.header-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: url("../img/header3.webp") no-repeat center;
+    background-size: cover;
+    height: 40%;
+}
+
+#header-title-text {
+    color:#353839;
+    text-align: center;
+    padding: 0.2rem;
+    border-radius: 2rem;
+}   
+
+.comment-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1 1 40%;
+}
+
+.index-submit-button {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    background-color:#ffac33;
+    color: #353839;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 20%;
+    border-radius: 2rem;
+}
+
+.description-box {
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: 1px solid black; /* Added black border */
+}   
+
+.analysis-type {
+    color: #353839;
+}
+
+.video-url {
+    height: 1.5rem;
+}
+
+.num-comments {
+    height: 1.5rem; 
+}
