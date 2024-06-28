@@ -15,7 +15,6 @@ from NLP.preprocessing import preprocess_comment
 from NLP import analysis
 
 # Load environment variables
-load_dotenv()
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
 
