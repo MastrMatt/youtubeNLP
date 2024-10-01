@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-svfbs8ke!chxokb1at4n$j&510m1ri#bjrjr65#de%&)q$r(vl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["youtube-nlp.apps.mastrmatt.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
