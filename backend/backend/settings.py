@@ -26,6 +26,11 @@ SECRET_KEY = "django-insecure-svfbs8ke!chxokb1at4n$j&510m1ri#bjrjr65#de%&)q$r(vl
 DEBUG = True
 
 ALLOWED_HOSTS = ["youtube-nlp.apps.mastrmatt.com", "localhost", "127.0.0.1"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://youtube-nlp.apps.mastrmatt.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
 
 # Application definition
