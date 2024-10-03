@@ -8,10 +8,12 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
+
 """
 
-import django_on_heroku # top of the file
+import os
 from pathlib import Path
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,16 +22,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-svfbs8ke!chxokb1at4n$j&510m1ri#bjrjr65#de%&)q$r(vl"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    default="django-insecure-svfbs8ke!chxokb1at4n$j&510m1ri#bjrjr65#de%&)q$r(vl",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", default=1))
 
-ALLOWED_HOSTS = []
+# added heroku host here
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "youtube-nlp-d6951c96817b.herokuapp.com",
+]
 
-
-# Application definition
+CSRF_TRUSTED_ORIGINS = ["https://youtube-nlp-d6951c96817b.herokuapp.com"]
 
 INSTALLED_APPS = [
     "comments",
@@ -125,5 +135,3 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-django_on_heroku.settings(locals())  # bottom of the file   
