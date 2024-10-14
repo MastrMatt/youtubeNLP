@@ -37,9 +37,13 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "youtube-nlp-d6951c96817b.herokuapp.com",
+    "youtube-nlp.mastrmatt.com",
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://youtube-nlp-d6951c96817b.herokuapp.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://youtube-nlp-d6951c96817b.herokuapp.com",
+    "https://youtube-nlp.mastrmatt.com",
+]
 
 INSTALLED_APPS = [
     "comments",
