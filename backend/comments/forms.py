@@ -15,13 +15,22 @@ class CommentForm(forms.Form):
     video_url = forms.URLField(
         label="Youtube Video URL",
         required=True,
-        widget=forms.TextInput(attrs={"class": "video-url", "placeholder": "Enter Here"}),
-    )  
+        widget=forms.TextInput(
+            attrs={"class": "video-url", "placeholder": "Enter here"}
+        ),
+    )
 
     num_comments = forms.IntegerField(
         label="Number of Comments",
         required=True,
-        widget=forms.NumberInput(attrs={"class": "num-comments", "placeholder": "Enter Here"}),
+        min_value=1,
+        max_value=100,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "num-comments",
+                "placeholder": "Enter less than 100, due to weak server",
+            }
+        ),
     )
 
     def clean_video_url(self):
